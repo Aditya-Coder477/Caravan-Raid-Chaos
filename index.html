@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caravan Raid Chaos - Full Campaign</title>
+    <style>
+        :root {
+            --primary: #ff6b35;
+            --secondary: #004e89;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #1a1a1a;
+            --light: #ecf0f1;
+            --sand: #daa520;
+            --gold: #ffd700;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, var(--sand) 0%, var(--secondary) 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        #gameContainer {
+            width: 100%;
+            max-width: 900px;
+            background: var(--light);
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: linear-gradient(to bottom, #87ceeb 0%, #fff9e6 100%);
+        }
+
+        .ui-panel {
+            background: var(--dark);
+            color: var(--light);
+            padding: 15px;
+            font-size: 14px;
+            border-top: 3px solid var(--primary);
+        }
+
+        .ui-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .ui-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-label {
+            color: var(--warning);
+            font-weight: bold;
+            min-width: 80px;
+        }
+
+        .stat-value {
+            color: var(--gold);
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .health-bar {
+            width: 200px;
+            height: 20px;
+            background: var(--danger);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--light);
+        }
+
+        .health-fill {
+            height: 100%;
+            background: var(--success);
+            width: 100%;
+            transition: width 0.2s;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #ff5722;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,107,53,0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #003d6b;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--light);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s ease;
+            margin: 20px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal h1 {
+            color: var(--primary);
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .modal h2 {
+            color: var(--secondary);
+            font-size: 24px;
+            margin: 20px 0 10px 0;
+        }
+
+        .modal p {
+            margin: 10px 0;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .route-option {
+            background: var(--secondary);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .route-option:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .route-difficulty {
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .route-reward {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .npc-dialogue {
+            background: var(--sand);
+            padding: 15px;
+            border-left: 5px solid var(--primary);
+            margin: 10px 0;
+            border-radius: 5px;
+            font-style: italic;
+        }
+
+        .score-board {
+            color: var(--gold);
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .level-indicator {
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .character-select {
+            background: var(--secondary);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .character-select:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .ability-info {
+            color: var(--success);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .ui-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .modal-content {
+                margin: 20px;
+            }
+            .health-bar {
+                width: 120px;
+            }
+        }
+        /* Main Menu Refactor Styles */
+        .main-menu-content {
+            background: linear-gradient(to bottom, #f4a460 0%, #8b4513 100%);
+            border: 4px solid #5d4037;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            color: #fff;
+            padding: 40px;
+            max-width: 650px;
+            width: 90%;
+        }
+
+        .game-title {
+            font-family: 'Arial', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            color: #ffd700;
+            text-shadow: 3px 3px 0px #8b4513, 5px 5px 0px rgba(0,0,0,0.5);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .game-subtitle {
+            font-size: 28px;
+            font-weight: 800;
+            color: #4fc3f7;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px #01579b;
+            margin-bottom: 20px;
+        }
+
+        .menu-description {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .scroll-header {
+            background: #ffe0b2;
+            color: #5d4037;
+            display: inline-block;
+            padding: 8px 40px;
+            border-radius: 5px;
+            font-weight: 900;
+            font-size: 20px;
+            text-transform: uppercase;
+            margin: 20px 0 15px 0;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border: 2px solid #8d6e63;
+        }
+
+        .scroll-header::before, .scroll-header::after {
+            content: '★';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8d6e63;
+            font-size: 14px;
+        }
+
+        .scroll-header::before { left: 10px; }
+        .scroll-header::after { right: 10px; }
+
+        .level-list, .instruction-list {
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+        }
+
+        .level-item {
+            margin-bottom: 5px;
+        }
+
+        .btn-start {
+            background: linear-gradient(to bottom, #66bb6a 0%, #43a047 100%);
+            color: white;
+            font-size: 28px;
+            font-weight: 900;
+            padding: 15px 50px;
+            border-radius: 50px;
+            border: 3px solid #2e7d32;
+            box-shadow: 0 6px 0 #1b5e20, 0 10px 10px rgba(0,0,0,0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+            margin-top: 20px;
+        }
+
+        .btn-start:hover {
+            transform: translateY(2px);
+            box-shadow: 0 4px 0 #1b5e20, 0 8px 8px rgba(0,0,0,0.4);
+            background: linear-gradient(to bottom, #81c784 0%, #4caf50 100%);
+        }
+
+        .btn-start:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #1b5e20, 0 4px 4px rgba(0,0,0,0.4);
+        }
+
+        @media (max-width: 768px) {
+            .game-title { font-size: 32px; }
+            .game-subtitle { font-size: 20px; }
+            .main-menu-content { padding: 20px; }
+        }
+
+        /* Level Selection "Blue Panel" Refactor */
+        .level-select-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 10px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .level-card {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(to bottom, #1565c0, #0d47a1); /* Blue gradient */
+            border: 3px solid #ffd700; /* Gold border */
+            border-radius: 12px;
+            padding: 10px 15px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.4);
+            color: white;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .level-card:hover {
+            transform: scale(1.02);
+        }
+        
+        /* Grey background for locked/inactive items */
+        .level-card.locked {
+            background: linear-gradient(to bottom, #546e7a, #37474f); /* Slate grey */
+            border-color: #90a4ae;
+            filter: none;
+        }
+
+        .level-thumb {
+            width: 70px;
+            height: 70px;
+            background: #263238;
+            border-radius: 8px;
+            margin-right: 15px;
+            border: 2px solid #bdbdbd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .level-card.locked .level-thumb {
+            filter: grayscale(0.8);
+            border-color: #546e7a;
+        }
+
+        .level-info {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .level-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffca28; /* Gold text */
+            text-shadow: 1px 1px 2px black;
+            margin-bottom: 2px;
+        }
+        
+        .level-card.locked .level-title {
+            color: #cfd8dc;
+        }
+
+        .level-details {
+            font-size: 13px;
+            color: #e3f2fd;
+            font-weight: 500;
+        }
+        .level-card.locked .level-details {
+            color: #b0bec5;
+        }
+
+        .play-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 100px;
+        }
+
+        .status-completed-icon {
+            color: #00cca3;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .status-text {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            color: #69f0ae;
+        }
+        .locked .status-text { color: #bdbdbd; }
+
+        .btn-select {
+            background: linear-gradient(to bottom, #ffa726, #f57c00);
+            border: 2px solid #ffe0b2;
+            color: #fff;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+            font-weight: bold;
+            font-size: 12px;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+        }
+        .btn-select:hover {
+            background: linear-gradient(to bottom, #ffb74d, #fb8c00);
+        }
+
+        .btn-replay {
+            background: linear-gradient(to bottom, #42a5f5, #1976d2);
+            border: 2px solid #bbdefb;
+            color: #fff;
+            font-weight: bold;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .lock-icon-large {
+            font-size: 28px;
+            color: #cfd8dc;
+            margin-bottom: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Large "Continue Adventure" button at bottom */
+        .continue-btn {
+            background: linear-gradient(to bottom, #fbc02d, #f57f17);
+            border: 3px solid #fff9c4;
+            color: white;
+            font-size: 22px;
+            font-weight: 900;
+            text-transform: uppercase;
+            padding: 15px;
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 15px;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.4);
+            cursor: pointer;
+            text-shadow: 1px 1px 2px black;
+            position: relative;
+        }
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(to bottom, #fdd835, #f9a825);
+        }
+        
+        .continue-subtext {
+            font-size: 12px;
+            font-weight: normal;
+            display: block;
+            margin-top: 2px;
+            color: #fffde7;
+        }
+
+        .back-btn {
+            background: #37474f;
+            color: #eceff1;
+            border: 2px solid #546e7a;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .back-btn:hover { background: #455a64; }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        <div class="ui-panel">
+            <div class="ui-row">
+                <div class="ui-stat">
+                    <span class="stat-label">LEVEL:</span>
+                    <span class="level-indicator" id="levelDisplay">1</span>
+                </div>
+                <div class="ui-stat">
+                    <span class="stat-label">GOLD:</span>
+                    <span class="stat-value" id="goldDisplay">500</span>
+                </div>
+                <div class="ui-stat">
+                    <span class="stat-label">CHARACTER:</span>
+                    <span class="stat-value" id="characterDisplay">Karim</span>
+                </div>
+                <div class="ui-stat">
+                    <span class="stat-label">HEALTH:</span>
+                    <div class="health-bar">
+                        <div class="health-fill" id="healthBar" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="ui-row">
+                <div class="button-group" id="buttonGroup">
+                    <button class="btn-primary" id="startBtn">START CAMPAIGN</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Menu Modal -->
+    <div id="mainMenu" class="modal show">
+        <div class="main-menu-content">
+            <h1 class="game-title">🐪 CARAVAN RAID CHAOS 🏜️</h1>
+            <div class="game-subtitle">FULL 5-LEVEL CAMPAIGN</div>
+            
+            <div class="menu-description">
+                Lead your legendary caravan through treacherous desert routes! Battle bandits, recruit allies, and become a legend of the trade routes.
+            </div>
+            
+            <div class="scroll-header">🌵 5 UNIQUE LEVELS: ⚔️</div>
+            <div class="level-list">
+                <div class="level-item"><strong>Level 1 (Easy):</strong> Desert Ambush - Learn the basics with Karim</div>
+                <div class="level-item"><strong>Level 2 (Medium):</strong> Merchant Guild - Join forces with Zarya</div>
+                <div class="level-item"><strong>Level 3 (Hard):</strong> Mountain Fortress - Master tactics with Raven</div>
+                <div class="level-item"><strong>Level 4 (Very Hard):</strong> Final Caravan - Protect all with Captain Iron</div>
+                <div class="level-item"><strong>Level 5 (Extreme):</strong> Crossroads Showdown - Ultimate boss battle</div>
+            </div>
+
+            <div class="scroll-header">📜 HOW TO PLAY 🐫</div>
+            <div class="instruction-list">
+                <div><strong>Combat:</strong> Click or Tap on enemies to shoot. Each character has unique abilities!</div>
+                <div><strong>Trading:</strong> Buy goods cheap, sell high to earn gold.</div>
+                <div><strong>Routes:</strong> Choose different paths with varying rewards.</div>
+                <div><strong>Progression:</strong> Unlock characters and abilities as you advance.</div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-start" onclick="startCampaign()">BEGIN ADVENTURE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Select Modal -->
+    <div id="levelSelectModal" class="modal">
+        <div class="modal-content">
+            <h1>⚔️ LEVEL SELECTION ⚔️</h1>
+            <p>Select your starting level or continue from your last checkpoint:</p>
+            <div id="levelSelectContent"></div>
+            <div class="modal-buttons">
+                <button class="btn-primary" id="resumeBtn" onclick="resumeLastLevel()">CONTINUE LAST LEVEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Character Select Modal (Level 1) -->
+    <div id="characterSelectModal" class="modal">
+        <div class="modal-content">
+            <h1>🗡️ CHOOSE YOUR CHARACTER 🗡️</h1>
+            <p>Each character has unique abilities:</p>
+            <div id="characterSelectContent"></div>
+        </div>
+    </div>
+
+    <!-- Trading Modal -->
+    <div id="tradeModal" class="modal">
+        <div class="modal-content">
+            <h1>🏪 MARKET TRADER 🏪</h1>
+            <div id="tradeContent"></div>
+            <div class="modal-buttons">
+                <button class="btn-success" id="proceedBtn">PROCEED TO COMBAT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Story Modal -->
+    <div id="storyModal" class="modal">
+        <div class="modal-content">
+            <h1 id="storyTitle"></h1>
+            <p id="storyText"></p>
+            <div class="npc-dialogue" id="storyDialogue"></div>
+            <div id="storyStats" style="margin-top: 15px; color: var(--secondary); font-weight: bold;"></div>
+            <div class="modal-buttons">
+                <button class="btn-primary" id="storyBtn">CONTINUE TO BATTLE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h1 id="gameOverTitle">LEVEL COMPLETE!</h1>
+            <p id="gameOverMessage"></p>
+            <div class="score-board" id="finalScore"></div>
+            <div id="nextLevelInfo" style="margin-top: 20px; color: var(--secondary);"></div>
+            <div class="modal-buttons">
+                <button class="btn-success" id="nextLevelBtn">NEXT LEVEL</button>
+                <button class="btn-secondary" id="retryBtn">RETRY LEVEL</button>
+                <button class="btn-primary" id="menuBtn">MAIN MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game States
+        const GAME_STATE = {
+            MENU: 'menu',
+            LEVEL_SELECT: 'levelSelect',
+            CHARACTER_SELECT: 'characterSelect',
+            TRADING: 'trading',
+            STORY: 'story',
+            COMBAT: 'combat',
+            LEVEL_COMPLETE: 'levelComplete',
+            GAME_OVER: 'gameOver'
+        };
+
+        // Character Definitions
+        const CHARACTERS = {
+            KARIM: {
+                name: 'KARIM',
+                title: 'Young Caravan Leader',
+                ability: 'Quick Shot',
+                description: 'Fires 2 bullets per shot. Every 5th shot is a critical hit (2x damage).',
+                health: 100,
+                speed: 1.0,
+                level: 1,
+                color: '#ff9800'
+            },
+            ZARYA: {
+                name: 'ZARYA',
+                title: 'Warrior from the North',
+                ability: 'Whirlwind Attack',
+                description: 'Every 10 shots triggers a 360° whirlwind attack damaging all enemies.',
+                health: 80,
+                speed: 1.3,
+                level: 2,
+                color: '#e91e63'
+            },
+            RAVEN: {
+                name: 'RAVEN',
+                title: 'Tactical Genius',
+                ability: 'Strategic Mark',
+                description: 'Mark up to 3 enemies for 50% extra damage. Perfect for strategy lovers.',
+                health: 90,
+                speed: 1.0,
+                level: 3,
+                color: '#9c27b0'
+            },
+            IRON: {
+                name: 'CAPTAIN IRON',
+                title: 'Veteran Protector',
+                ability: 'Shield Bash',
+                description: 'Creates protective barriers. Highest health, protective tank role.',
+                health: 120,
+                speed: 0.7,
+                level: 4,
+                color: '#607d8b'
+            }
+        };
+
+        // Level Definitions
+        const LEVELS = {
+            1: {
+                name: 'Desert Ambush',
+                character: 'KARIM',
+                difficulty: 'Easy',
+                enemies: 5,
+                baseHealth: 100,
+                gold: 500,
+                story: {
+                    title: '🏜️ A Young Leader\'s First Test 🏜️',
+                    text: 'You are Karim, inheriting your father\'s caravan business. Your first journey through the desert plains tests your mettle against inexperienced bandits. The caravan master Hassan trains you in combat.',
+                    npc: '"Welcome, Karim! Show these bandits what you\'re made of!" - Hassan, Caravan Master',
+                    stats: 'Bandits: 5 | Waves: 3 | Gold Reward: 200-400'
+                }
+            },
+            2: {
+                name: 'Merchant Guild Showdown',
+                character: 'ZARYA',
+                difficulty: 'Medium',
+                enemies: 12,
+                baseHealth: 100,
+                gold: 500,
+                story: {
+                    title: '💼 Guild Testing 💼',
+                    text: 'The Merchant Guild tests your worth with coordinated attacks. You meet Zarya, a fierce warrior from the north. She offers to join your caravan for a share of profits.',
+                    npc: '"I like your style. Let me show you what real combat looks like!" - Zarya, Warrior',
+                    stats: 'Mercenaries: 12 | Waves: 4 | Gold Reward: 500-800'
+                }
+            },
+            3: {
+                name: 'Mountain Fortress Assault',
+                character: 'RAVEN',
+                difficulty: 'Hard',
+                enemies: 20,
+                baseHealth: 100,
+                gold: 1000,
+                story: {
+                    title: '🏰 Fortress of Shadows 🏰',
+                    text: 'The Shadow Caravan has fortified the mountain pass! You recruit Raven, a tactical genius from the military. Her strategic insights will be crucial to breaking their defenses.',
+                    npc: '"Their shields are weak on the left. We need precision and timing." - Raven, Strategist',
+                    stats: 'Soldiers: 20 | Waves: 5 | Gold Reward: 1000-1500'
+                }
+            },
+            4: {
+                name: 'The Final Caravan',
+                character: 'IRON',
+                difficulty: 'Very Hard',
+                enemies: 30,
+                baseHealth: 100,
+                gold: 1000,
+                story: {
+                    title: '⚔️ Endurance Test ⚔️',
+                    text: 'Your reputation grows! Khalid\'s assassins intercept your legendary caravan. You recruit Captain Iron, a veteran protector. This battle determines the fate of all trade routes.',
+                    npc: '"Your caravan means something to people now. We protect what matters." - Captain Iron',
+                    stats: 'Assassins: 30 | Waves: 6 | Gold Reward: 2000-3000'
+                }
+            },
+            5: {
+                name: 'Crossroads Showdown',
+                character: 'TEAM',
+                difficulty: 'Extreme',
+                enemies: 50,
+                baseHealth: 150,
+                gold: 5000,
+                story: {
+                    title: '👑 The Final Battle 👑',
+                    text: 'The ultimate confrontation! All your allies - Karim, Zarya, Raven, and Captain Iron - unite to face Khalid the Iron Merchant. Control all characters and their unique abilities to triumph.',
+                    npc: '"Everything we\'ve fought for comes down to this moment. Let\'s show Khalid the true power of unity!" - Your Allied Team',
+                    stats: 'Final Boss: Khalid (3 Phases) | Waves: Multiple | Gold Reward: 5000-7000'
+                }
+            }
+        };
+
+        // Game State Variables
+        let gameState = GAME_STATE.MENU;
+        let currentLevel = 1;
+        let currentCharacter = 'KARIM';
+        let playerData = {
+            gold: 500,
+            totalGold: 0,
+            health: 100,
+            maxHealth: 100,
+            level: 1,
+            exp: 0,
+            unlockedCharacters: ['KARIM'],
+            completedLevels: [],
+            lastLevel: 0,
+            // New Mechanics
+            shotCount: 0,
+            whirlwindReady: false,
+            merchantHealth: [50, 50, 50, 50],
+            morale: 100,
+            khalidHealth: 500,
+            khalidMaxHealth: 500,
+            khalidPhase: 1
+        };
+
+        let enemies = [];
+        let projectiles = [];
+        let particles = [];
+        let markedEnemies = []; // For Raven
+        let combatStats = {
+            enemiesDefeated: 0,
+            goldenEarned: 0,
+            damageDealt: 0,
+            startTime: 0,
+            endTime: 0
+        };
+
+        // Load Game Data from LocalStorage
+        function loadGameData() {
+            const saved = localStorage.getItem('caravanGameData');
+            if (saved) {
+                playerData = JSON.parse(saved);
+                currentLevel = playerData.lastLevel || 1;
+            }
+        }
+
+        // Save Game Data
+        function saveGameData() {
+            playerData.lastLevel = currentLevel;
+            localStorage.setItem('caravanGameData', JSON.stringify(playerData));
+        }
+
+        // Initialize audio context for sounds
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(frequency = 800, duration = 0.1, type = 'sine') {
+            try {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.frequency.value = frequency;
+                osc.type = type;
+                
+                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                osc.start(audioContext.currentTime);
+                osc.stop(audioContext.currentTime + duration);
+            } catch(e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        function drawGame() {
+            ctx.fillStyle = 'rgba(135, 206, 235, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#f4a460';
+            ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
+
+            if (gameState === GAME_STATE.COMBAT) {
+                drawCombat();
+            }
+        }
+
+        function drawCombat() {
+            // Draw Level Background (Basic Color Shifts)
+            if (currentLevel === 1) ctx.fillStyle = '#f4a460'; // Desert
+            else if (currentLevel === 2) ctx.fillStyle = '#d2b48c'; // Guild
+            else if (currentLevel === 3) ctx.fillStyle = '#708090'; // Fortress
+            else if (currentLevel === 4) ctx.fillStyle = '#556b2f'; // Ambush
+            else ctx.fillStyle = '#2c3e50'; // Boss
+
+            ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
+
+            // Draw Caravan (Player)
+            let caravanPos = { x: 90, y: 370 };
+            if (currentLevel === 5) caravanPos = { x: canvas.width / 2, y: 400 };
+
+            ctx.fillStyle = '#8b4513';
+            ctx.fillRect(caravanPos.x - 40, caravanPos.y - 20, 80, 60);
+            ctx.fillStyle = '#daa520';
+            ctx.fillRect(caravanPos.x - 30, caravanPos.y - 30, 60, 20);
+            
+            // Draw Character Specific Aura/Indicator
+            ctx.beginPath();
+            ctx.arc(caravanPos.x, caravanPos.y + 10, 50, 0, Math.PI * 2);
+            ctx.strokeStyle = CHARACTERS[currentCharacter].color;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Zarya Whirlwind Indicator
+            if (currentCharacter === 'ZARYA') {
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.fillText(`${playerData.shotCount}/10`, caravanPos.x, caravanPos.y - 40);
+            }
+
+            // Level 4 Merchants
+            if (currentLevel === 4) {
+                 for (let i = 0; i < 4; i++) {
+                     if (playerData.merchantHealth[i] > 0) {
+                         ctx.fillStyle = '#8e44ad';
+                         ctx.fillRect(150 + i * 120, 400, 40, 40);
+                         ctx.fillStyle = '#fff';
+                         ctx.font = '10px Arial';
+                         ctx.fillText(`M${i+1}`, 170 + i * 120, 420);
+                         // Health bar
+                         ctx.fillStyle = 'red';
+                         ctx.fillRect(150 + i * 120, 390, 40, 5);
+                         ctx.fillStyle = 'lime';
+                         ctx.fillRect(150 + i * 120, 390, (playerData.merchantHealth[i]/50)*40, 5);
+                     }
+                 }
+            }
+
+            // Draw enemies
+            enemies.forEach((enemy, index) => {
+                ctx.fillStyle = enemy.color || '#e74c3c';
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                
+                // Draw eyes
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.arc(enemy.x + enemy.width / 2, enemy.y + 10, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Raven Mark Indicator
+                if (markedEnemies.includes(index)) {
+                    ctx.strokeStyle = 'yellow';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(enemy.x, enemy.y);
+                    ctx.lineTo(enemy.x + enemy.width, enemy.y + enemy.height);
+                    ctx.moveTo(enemy.x + enemy.width, enemy.y);
+                    ctx.lineTo(enemy.x, enemy.y + enemy.height);
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = '#2ecc71';
+                ctx.fillRect(enemy.x, enemy.y - 10, (enemy.health / enemy.maxHealth) * enemy.width, 5);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(enemy.x, enemy.y - 10, enemy.width, 5);
+            });
+
+            // Level 5 BOSS Render
+            if (currentLevel === 5) {
+                // Boss Body
+                ctx.fillStyle = '#c0392b';
+                let bossX = canvas.width / 2;
+                let bossY = 80;
+                
+                if (playerData.khalidHealth > 0) {
+                    // Shake effect if low health
+                    if (playerData.khalidHealth < 100) {
+                        bossX += (Math.random() - 0.5) * 5;
+                    }
+
+                    ctx.fillRect(bossX - 60, bossY - 60, 120, 120);
+                    ctx.fillStyle = '#f1c40f'; // Crown
+                    ctx.fillRect(bossX - 40, bossY - 80, 80, 20);
+                    
+                    // Boss Name & Phase
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 20px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`KHALID - Phase ${playerData.khalidPhase}`, bossX, bossY - 90);
+
+                    // Boss Health Bar (Big)
+                    ctx.fillStyle = '#555';
+                    ctx.fillRect(canvas.width/2 - 200, 20, 400, 20);
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.fillRect(canvas.width/2 - 200, 20, (playerData.khalidHealth/playerData.khalidMaxHealth)*400, 20);
+                    ctx.strokeStyle = '#fff';
+                    ctx.strokeRect(canvas.width/2 - 200, 20, 400, 20);
+                }
+            }
+
+            // Draw projectiles
+            projectiles.forEach(p => {
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw particles
+            particles.forEach(p => {
+                ctx.fillStyle = `rgba(255, 107, 53, ${p.life})`;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+            });
+
+            // Draw stats overlay
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(0, 0, 250, 130);
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Level: ${currentLevel} - ${LEVELS[currentLevel].name}`, 10, 20);
+            ctx.fillText(`Health: ${Math.max(0, playerData.health)}/${playerData.maxHealth}`, 10, 40);
+            if (currentLevel === 4) ctx.fillText(`Morale: ${playerData.morale}%`, 10, 60);
+            else ctx.fillText(`Enemies: ${combatStats.enemiesDefeated}/${LEVELS[currentLevel].enemies}`, 10, 60);
+            
+            ctx.fillText(`Character: ${currentCharacter} (Lvl ${CHARACTERS[currentCharacter].level})`, 10, 80);
+            ctx.fillText(`Gold: ${playerData.gold}`, 10, 100);
+            
+            if (currentLevel === 5) {
+                ctx.fillStyle = '#ffff00';
+                ctx.fillText(`[1-4] Switch Character`, 10, 120);
+            }
+        }
+
+        function updateCombat() {
+            // Update enemies
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                enemies[i].y += enemies[i].speed;
+                
+                // Win/Loss Condition Checks for reaching bottom
+                if (enemies[i].y > canvas.height - 100) {
+                    // Level 4: Damage Merchants
+                    if (currentLevel === 4) {
+                        for (let m = 0; m < playerData.merchantHealth.length; m++) {
+                            if (playerData.merchantHealth[m] > 0) {
+                                playerData.merchantHealth[m] -= 10;
+                                playerData.morale -= 5;
+                                break;
+                            }
+                        }
+                    } 
+                    // Level 3: Extra Damage
+                    else if (currentLevel === 3) {
+                         playerData.health -= 20;
+                    } 
+                    // Level 5: Boss Fight Logic (soldiers)
+                    else if (currentLevel === 5) {
+                         // Soldiers in boss fight just disappear or loop? Let's damage player
+                         playerData.health -= 10; // Standard
+                    }
+                    // Standard Levels (1, 2)
+                    else {
+                        playerData.health -= 10;
+                    }
+
+                    enemies.splice(i, 1);
+                    if (currentLevel === 3) {
+                         // Clean up marked index if enemy removed
+                         markedEnemies = markedEnemies.filter(idx => idx !== i);
+                    }
+                    playSound(200, 0.2);
+                    continue;
+                }
+
+                // Projectile Collision
+                for (let j = projectiles.length - 1; j >= 0; j--) {
+                    let p = projectiles[j];
+                    if (p.x > enemies[i].x && p.x < enemies[i].x + enemies[i].width &&
+                        p.y > enemies[i].y && p.y < enemies[i].y + enemies[i].height) {
+                        
+                        let damage = 25;
+                        
+                        // Level 1: Karim Critical
+                        if (currentCharacter === 'KARIM' && playerData.shotCount % 5 === 0) {
+                            damage = 50; 
+                        }
+
+                        // Level 3: Raven Mark
+                        if (currentLevel === 3 && markedEnemies.includes(i)) {
+                            damage = 40;
+                        }
+                        
+                        // Level 5 Character Specifics
+                        if (currentLevel === 5) {
+                            if (currentCharacter === 'RAVEN' && markedEnemies.includes(i)) damage = 40;
+                            if (currentCharacter === 'KARIM' && playerData.shotCount % 5 === 0) damage = 50;
+                        }
+
+                        enemies[i].health -= damage;
+                        projectiles.splice(j, 1);
+                        combatStats.damageDealt += damage;
+                        playSound(800, 0.1);
+                        createExplosion(enemies[i].x + enemies[i].width / 2, enemies[i].y);
+
+                        if (enemies[i].health <= 0) {
+                            let goldRew = 50;
+                            if (currentLevel === 2) goldRew = 60;
+                            if (currentLevel === 3) goldRew = 80;
+                            if (currentLevel === 4) { goldRew = 100; playerData.morale += 10; }
+                            if (currentLevel === 5) goldRew = 150;
+
+                            playerData.gold += goldRew;
+                            playerData.totalGold += goldRew;
+                             playerData.exp += 15;
+                            combatStats.enemiesDefeated++;
+                            playSound(1200, 0.15);
+                            enemies.splice(i, 1);
+                            
+                            if (currentLevel === 3 || (currentLevel === 5 && currentCharacter === 'RAVEN')) {
+                                markedEnemies = markedEnemies.filter(idx => idx !== i);
+                            }
+                        }
+                        break;
+                    }
+                    
+                    // BOSS COLLISION (Level 5)
+                    if (currentLevel === 5 && p.x > canvas.width / 2 - 50 && p.x < canvas.width / 2 + 50 &&
+                        p.y > 50 && p.y < 130) {
+                        
+                        playerData.khalidHealth -= 50; // High damage to boss per shot
+                        projectiles.splice(j, 1); // Remove projectile on boss hit
+                        playSound(1100, 0.15);
+                        createExplosion(canvas.width / 2 + (Math.random()*40 - 20), 100);
+
+                        // Boss Phases
+                        if (playerData.khalidHealth <= 350 && playerData.khalidPhase === 1) {
+                            playerData.khalidPhase = 2;
+                            playSound(200, 0.5, 'square');
+                        }
+                        if (playerData.khalidHealth <= 150 && playerData.khalidPhase === 2) {
+                            playerData.khalidPhase = 3;
+                            playSound(150, 0.8, 'sine');
+                        }
+                        break; // Don't check other enemies if hit boss
+                    }
+                }
+            }
+
+            // Update projectiles
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                projectiles[i].y -= projectiles[i].speed;
+                if (projectiles[i].y < 0) {
+                    projectiles.splice(i, 1);
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].x += particles[i].vx;
+                particles[i].y += particles[i].vy;
+                particles[i].life -= 0.02;
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            // Spawn enemies Logic
+            let maxEnemies = 2 + currentLevel;
+            let spawnRate = 0.02;
+            let spawnCap = LEVELS[currentLevel].enemies;
+
+            if (currentLevel === 2) { maxEnemies = 12; spawnRate = 0.025; } // Level 2 logic
+            if (currentLevel === 3) { maxEnemies = 20; spawnRate = 0.03; } // Level 3 logic
+            if (currentLevel === 4) { maxEnemies = 30; spawnRate = 0.035; } // Level 4 logic
+            if (currentLevel === 5) { maxEnemies = 50; spawnRate = 0.04; } // Level 5 logic
+
+            if (enemies.length < 5 && Math.random() < spawnRate && combatStats.enemiesDefeated < spawnCap) { // Limit concurrently on screen to 5
+                 enemies.push({
+                    x: Math.random() * (canvas.width - 50),
+                    y: -50,
+                    width: 40,
+                    height: 50,
+                    speed: 2 + currentLevel * 0.5,
+                    health: 50 + currentLevel * 10,
+                    maxHealth: 50 + currentLevel * 10,
+                    color: ['#e74c3c', '#e67e22', '#c0392b'][Math.floor(Math.random() * 3)]
+                });
+            }
+
+            // Win condition
+            if (currentLevel === 5) {
+                if (playerData.khalidHealth <= 0) winLevel();
+            } else {
+                if (enemies.length === 0 && combatStats.enemiesDefeated >= LEVELS[currentLevel].enemies) {
+                     winLevel();
+                }
+            }
+
+            // Loss condition
+            if (playerData.health <= 0) loseLevel();
+            if (currentLevel === 4) {
+                 if (playerData.morale <= 0 || playerData.merchantHealth.every(h => h <= 0)) loseLevel();
+            }
+        }
+
+        function createExplosion(x, y) {
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
+                    life: 1,
+                    size: Math.random() * 5 + 3
+                });
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (gameState === GAME_STATE.COMBAT && currentLevel === 5 && ['1', '2', '3', '4'].includes(e.key)) {
+                const chars = ['KARIM', 'ZARYA', 'RAVEN', 'IRON'];
+                currentCharacter = chars[parseInt(e.key) - 1];
+                playSound(800, 0.1);
+            }
+            if (gameState === GAME_STATE.COMBAT && e.key === 'r' && currentCharacter === 'RAVEN') {
+                // Raven marking logic handled in click, but R key is alias
+            }
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (gameState !== GAME_STATE.COMBAT) return;
+            
+            let rect = canvas.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+
+            // --- RAVEN LOGIC (Marking) ---
+            if (currentCharacter === 'RAVEN') {
+                let clickedEnemy = false;
+                for (let i = 0; i < enemies.length; i++) {
+                    if (x > enemies[i].x && x < enemies[i].x + enemies[i].width &&
+                        y > enemies[i].y && y < enemies[i].y + enemies[i].height) {
+                        
+                        // Toggle mark
+                        if (markedEnemies.includes(i)) {
+                            markedEnemies = markedEnemies.filter(idx => idx !== i);
+                        } else if (markedEnemies.length < 3) {
+                            markedEnemies.push(i);
+                        }
+                        
+                        createExplosion(x, y);
+                        playSound(1100, 0.1);
+                        clickedEnemy = true;
+                        break;
+                    }
+                }
+                if (clickedEnemy) return; // If clicked enemy with Raven, don't shoot
+            }
+
+            // --- ZARYA LOGIC (Whirlwind Counter) ---
+            if (currentCharacter === 'ZARYA') {
+                playerData.shotCount++;
+                if (playerData.shotCount >= 10) {
+                    playerData.whirlwindReady = true;
+                    playerData.shotCount = 0;
+                    
+                    // Trigger Whirlwind
+                    enemies.forEach(enemy => {
+                        let damage = 40;
+                        enemy.health -= damage;
+                        combatStats.damageDealt += damage;
+                        createExplosion(enemy.x + 20, enemy.y + 25);
+                        
+                        if (enemy.health <= 0) {
+                            playerData.gold += 60;
+                            combatStats.enemiesDefeated++;
+                        }
+                    });
+                    playSound(600, 0.3, 'sawtooth');
+                    playerData.whirlwindReady = false;
+                    return; // Whirlwind replaces shot
+                }
+            }
+            
+            // --- KARIM LOGIC (Shot Count for Crits) ---
+            if (currentCharacter === 'KARIM') {
+                playerData.shotCount++;
+            }
+
+            // --- IRON LOGIC (Shot Count) ---
+            if (currentCharacter === 'IRON') {
+                playerData.shotCount++;
+            }
+
+            // Standard Shooting Logic (Modified for Karim)
+            let caravan = { x: 90, y: 370 };
+            // In Level 5, caravan source changes based on boss position or center
+            if (currentLevel === 5) {
+                caravan = { x: canvas.width / 2, y: 400 };
+            }
+
+            let dx = x - caravan.x;
+            let dy = y - caravan.y;
+            let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+            if (currentCharacter === 'KARIM') {
+                // Fire 2 bullets
+                for (let i = 0; i < 2; i++) {
+                    projectiles.push({
+                        x: caravan.x + (i * 10 - 5),
+                        y: caravan.y - 20,
+                        speed: 5,
+                        vx: (dx / dist) * 5,
+                        vy: (dy / dist) * 5
+                    });
+                }
+            } else {
+                // Fire 1 bullet
+                projectiles.push({
+                    x: caravan.x,
+                    y: caravan.y - 20,
+                    speed: 5, // Default speed
+                    vx: (dx / dist) * 5,
+                    vy: (dy / dist) * 5
+                });
+            }
+            
+            playSound(600, 0.1, 'square');
+        });
+
+        function startLevel(levelNum) {
+            // Check validation
+            if (levelNum > 1) {
+                 if (!playerData.completedLevels.includes(levelNum - 1)) {
+                     alert(`Level ${levelNum} is locked! Complete the previous level first.`);
+                     return;
+                 }
+            }
+
+            // Direct Redirection to Level Files
+            const levelFiles = [
+                'LEVEL_1_Desert.html',
+                'LEVEL_2_Guild.html',
+                'LEVEL_3_Fortress.html',
+                'LEVEL_4_Final.html',
+                'LEVEL_5_Boss_Final.html'
+            ];
+
+            if (levelNum >= 1 && levelNum <= 5) {
+                window.location.href = levelFiles[levelNum - 1];
+            }
+        }
+
+        function winLevel() {
+            gameState = GAME_STATE.LEVEL_COMPLETE;
+            combatStats.endTime = Date.now();
+            let timeTaken = Math.round((combatStats.endTime - combatStats.startTime) / 1000);
+            let goldBonus = 0;
+
+            if (playerData.health > playerData.maxHealth * 0.7) goldBonus += 100;
+            if (timeTaken < 120) goldBonus += 50;
+
+            let levelGold = LEVELS[currentLevel].gold + goldBonus;
+            playerData.gold += levelGold;
+            playerData.totalGold += levelGold;
+
+            if (!playerData.completedLevels.includes(currentLevel)) {
+                playerData.completedLevels.push(currentLevel);
+            }
+
+            document.getElementById('gameOverTitle').textContent = '🏆 LEVEL COMPLETE! 🏆';
+            document.getElementById('gameOverMessage').textContent = 
+                `You successfully completed Level ${currentLevel}: ${LEVELS[currentLevel].name}!\n\nEnemies Defeated: ${combatStats.enemiesDefeated}\nGold Earned: +${levelGold}\nTime: ${timeTaken}s`;
+            document.getElementById('finalScore').textContent = `Total Gold: ${playerData.totalGold} | Progress: ${playerData.completedLevels.length}/5`;
+
+            if (currentLevel < 5) {
+                document.getElementById('nextLevelInfo').innerHTML = 
+                    `<p><strong>Next Level: ${LEVELS[currentLevel + 1].name}</strong></p><p>Difficulty: ${LEVELS[currentLevel + 1].difficulty}</p>`;
+                document.getElementById('nextLevelBtn').style.display = 'block';
+            } else {
+                document.getElementById('nextLevelInfo').innerHTML = 
+                    `<p><strong>🎉 YOU'VE COMPLETED THE ENTIRE CAMPAIGN! 🎉</strong></p>`;
+                document.getElementById('nextLevelBtn').style.display = 'none';
+            }
+
+            document.getElementById('gameOverModal').classList.add('show');
+            saveGameData();
+            playSound(1200, 0.5);
+        }
+
+        function loseLevel() {
+            gameState = GAME_STATE.GAME_OVER;
+            document.getElementById('gameOverTitle').textContent = '💀 LEVEL FAILED! 💀';
+            document.getElementById('gameOverMessage').textContent = 
+                `Your caravan was overrun!\n\nEnemies Defeated: ${combatStats.enemiesDefeated}/${LEVELS[currentLevel].enemies}\nDamage Dealt: ${combatStats.damageDealt}`;
+            document.getElementById('finalScore').textContent = `Gold Lost: -${currentLevel * 50} | Retry to continue`;
+            document.getElementById('nextLevelInfo').innerHTML = '';
+            document.getElementById('nextLevelBtn').style.display = 'none';
+            document.getElementById('gameOverModal').classList.add('show');
+            playSound(200, 0.3);
+        }
+
+        function updateUI() {
+            document.getElementById('levelDisplay').textContent = currentLevel;
+            document.getElementById('goldDisplay').textContent = playerData.gold;
+            document.getElementById('characterDisplay').textContent = currentCharacter;
+            let healthPercent = (playerData.health / playerData.maxHealth) * 100;
+            document.getElementById('healthBar').style.width = healthPercent + '%';
+        }
+
+        function startCampaign() {
+            document.getElementById('mainMenu').classList.remove('show');
+            showLevelSelect();
+        }
+
+        function showLevelSelect() {
+            gameState = GAME_STATE.LEVEL_SELECT;
+            let content = '<h1 style="color:#d4af37; text-align:center; text-shadow:2px 2px 0 #3e2723; margin-bottom:15px;">Level Selection</h1>';
+            content += '<div class="level-select-container">';
+            
+            let nextPlayableLevel = 1;
+
+            for (let i = 1; i <= 5; i++) {
+                let isUnlocked = i === 1 || playerData.completedLevels.includes(i - 1);
+                let isCompleted = playerData.completedLevels.includes(i);
+                
+                if (isUnlocked && !isCompleted) nextPlayableLevel = i;
+                
+                // Classes
+                let cardClass = isUnlocked ? 'level-card' : 'level-card locked';
+                
+                // Play Section Content
+                let playSectionHtml = '';
+                if (isCompleted) {
+                    playSectionHtml = `
+                        <div class="status-completed-icon">✔</div>
+                        <div class="status-text" style="color:#69f0ae">COMPLETED</div>
+                        <button class="btn-replay" onclick="startLevel(${i})">REPLAY</button>
+                    `;
+                } else if (isUnlocked) {
+                    playSectionHtml = `
+                        <div class="lock-icon-large" style="font-size:24px; color:#ffd700">🔓</div>
+                        <div class="status-text" style="color:#ffd700">AVAILABLE</div>
+                        <button class="btn-select" onclick="startLevel(${i})">SELECT</button>
+                    `;
+                } else {
+                    playSectionHtml = `
+                        <div class="lock-icon-large">🔒</div>
+                        <div class="status-text">LOCKED</div>
+                    `;
+                }
+
+                // Thumbnails
+                let thumbs = ['🦂', '⛺', '🏰', '🐪', '⚔️'];
+                let thumbContent = thumbs[i-1];
+                
+                // Use Zarya Image for Level 2
+                if (i === 2) {
+                    thumbContent = `<img src="zarya_portrait.png" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #ffd700;">`;
+                }
+
+                content += `
+                    <div class="${cardClass}" onclick="${isUnlocked ? `startLevel(${i})` : ''}">
+                        <div class="level-thumb">
+                            ${thumbContent}
+                        </div>
+                        
+                        <div class="level-info">
+                            <div class="level-title">Level ${i}: ${LEVELS[i].name}</div>
+                            <div class="level-details">
+                                Difficulty: ${LEVELS[i].difficulty} | Enemies: ${LEVELS[i].enemies}
+                            </div>
+                        </div>
+
+                        <div class="play-section">
+                            ${playSectionHtml}
+                        </div>
+                    </div>
+                `;
+            }
+            content += '</div>';
+
+            // "Continue Adventure" Button
+            content += `
+                <button class="continue-btn" onclick="startLevel(${nextPlayableLevel})">
+                    CONTINUE ADVENTURE
+                    <span class="continue-subtext">(Jump to Level ${nextPlayableLevel})</span>
+                </button>
+                
+                <button class="back-btn" onclick="openMenu()">
+                    <span>�</span> BACK TO MAIN MENU
+                </button>
+            `;
+
+            document.getElementById('levelSelectContent').innerHTML = content;
+            document.getElementById('levelSelectModal').classList.add('show');
+            
+            // Adjust modal styling for this specific design
+            let modalContent = document.querySelector('#levelSelectModal .modal-content');
+            modalContent.style.background = 'linear-gradient(135deg, #a1887f 0%, #4e342e 100%)';
+            modalContent.style.border = '4px solid #3e2723';
+            modalContent.style.maxWidth = '550px';
+            
+            // Re-hide default button container which might interfere
+            document.querySelector('#levelSelectModal .modal-buttons').style.display = 'none';
+        }
+
+        function openMenu() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
+            document.getElementById('mainMenu').classList.add('show');
+            gameState = GAME_STATE.MENU;
+        }
+
+        function resumeLastLevel() {
+            document.getElementById('levelSelectModal').classList.remove('show');
+            if (playerData.lastLevel > 0) {
+                startLevel(playerData.lastLevel);
+            } else {
+                startLevel(1);
+            }
+        }
+
+        function gameLoop() {
+            updateUI();
+            drawGame();
+            
+            // Internal combat logic disabled - Redirects used instead
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event Listeners
+        document.getElementById('startBtn').addEventListener('click', startCampaign);
+
+        document.getElementById('nextLevelBtn').addEventListener('click', () => {
+            document.getElementById('gameOverModal').classList.remove('show');
+            if (currentLevel < 5) {
+                startLevel(currentLevel + 1);
+            }
+        });
+
+        document.getElementById('retryBtn').addEventListener('click', () => {
+            document.getElementById('gameOverModal').classList.remove('show');
+            startLevel(currentLevel);
+        });
+
+        document.getElementById('menuBtn').addEventListener('click', () => {
+            document.getElementById('gameOverModal').classList.remove('show');
+            location.reload();
+        });
+
+        // Initialize
+        loadGameData();
+        gameLoop();
+    </script>
+</body>
+</html>

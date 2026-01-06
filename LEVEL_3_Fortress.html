@@ -1,0 +1,1040 @@
+<!-- ============================================================
+     CARAVAN RAID CHAOS - LEVEL 3: MOUNTAIN FORTRESS ASSAULT
+     ============================================================
+     Theme: Skill & Tactical Challenge
+     Difficulty: Hard (★★★☆☆)
+     Location: Mountain Pass, Fortified Camp
+     
+     Story: The Shadow Caravan has fortified the mountain pass.
+     You recruit RAVEN, a tactical genius who teaches you strategy.
+     ============================================================ -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caravan Raid Chaos - Level 3: Mountain Fortress</title>
+    <style>
+        :root {
+            --primary: #9c27b0;
+            --secondary: #004e89;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #1a1a1a;
+            --light: #ecf0f1;
+            --sand: #daa520;
+            --gold: #ffd700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #dda0dd 0%, #ba55d3 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        #gameContainer {
+            width: 100%;
+            max-width: 900px;
+            background: var(--light);
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: linear-gradient(to bottom, #87ceeb 0%, #fff9e6 100%);
+        }
+
+        .ui-panel {
+            background: var(--dark);
+            color: var(--light);
+            padding: 15px;
+            font-size: 14px;
+            border-top: 3px solid var(--primary);
+        }
+
+        .ui-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .ui-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-label {
+            color: var(--warning);
+            font-weight: bold;
+            min-width: 80px;
+        }
+
+        .stat-value {
+            color: var(--gold);
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .health-bar {
+            width: 200px;
+            height: 20px;
+            background: var(--danger);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--light);
+        }
+
+        .health-fill {
+            height: 100%;
+            background: var(--success);
+            width: 100%;
+            transition: width 0.2s;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #8b1aa0;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background: var(--light);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal h1 {
+            color: var(--primary);
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .modal h2 {
+            color: var(--secondary);
+            font-size: 24px;
+            margin: 20px 0 10px 0;
+        }
+
+        .modal p {
+            margin: 10px 0;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .npc-dialogue {
+            background: var(--sand);
+            padding: 15px;
+            border-left: 5px solid var(--primary);
+            margin: 10px 0;
+            border-radius: 5px;
+            font-style: italic;
+        }
+
+        .score-board {
+            color: var(--gold);
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: #f3e5f5;
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        /* Refactored Level 3 UI Styles */
+        .intro-container {
+            background: linear-gradient(to bottom, #f3e5f5, #e1bee7);
+            border: 4px solid #8e24aa;
+            border-radius: 15px;
+            padding: 3px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            color: #4a148c;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+        }
+
+        .intro-header-bg {
+            background: #fff3e0;
+            padding: 20px;
+            border-bottom: 3px solid #ce93d8;
+        }
+
+        .intro-title {
+            font-family: 'Arial Black', sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            color: #8e24aa;
+            text-transform: uppercase;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            letter-spacing: 1px;
+        }
+
+        .intro-subtitle {
+            font-size: 22px;
+            font-weight: bold;
+            color: #0d47a1;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        .intro-body {
+            padding: 20px;
+            background: linear-gradient(to bottom, #f3e5f5 0%, #ffcc80 100%); /* Purple to sand gradient */
+        }
+
+        .character-section {
+            background: #d1c4e9; /* Light purple */
+            background: linear-gradient(to bottom, #d1c4e9, #b39ddb);
+            border: 3px solid #7b1fa2;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .char-title {
+            color: #7b1fa2;
+            font-weight: 900;
+            font-size: 20px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .section-header {
+            font-weight: 900;
+            color: #0d47a1;
+            text-transform: uppercase;
+            font-size: 20px;
+            margin: 15px 0 10px 0;
+        }
+
+        .objective-list {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 15px;
+            text-align: left;
+            display: inline-block;
+        }
+
+        .objective-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1b5e20;
+        }
+
+        .check-box {
+            width: 20px;
+            height: 20px;
+            background: #69f0ae;
+            border: 2px solid #2e7d32;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00600f;
+            font-weight: bold;
+        }
+
+        .how-to-header {
+            color: #ffeb3b;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 24px;
+            text-shadow: 2px 2px 0 #f57c00;
+            margin: 20px 0 10px 0;
+        }
+
+        .how-to-play {
+            font-size: 14px;
+            color: #3e2723;
+            line-height: 1.6;
+            font-weight: bold;
+        }
+
+        .btn-begin {
+            background: linear-gradient(to bottom, #2ecc71, #27ae60);
+            color: #fff;
+            font-size: 20px;
+            font-weight: 900;
+            border: none;
+            border-radius: 8px;
+            padding: 15px 50px;
+            margin: 20px auto 10px auto;
+            display: block;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+            text-transform: uppercase;
+            transition: transform 0.2s;
+        }
+        /* Refactored Story Modal UI (Level 3) */
+        .story-container {
+            background: #fff8e1; /* Light parchment */
+            border: 4px solid #8e24aa; /* Purple border */
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 580px;
+            width: 100%;
+            position: relative;
+            color: #3e2723;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            font-family: 'Times New Roman', serif;
+        }
+        
+        /* Secondary internal border for style */
+        .story-container::after {
+            content: '';
+            position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: 5px;
+            border: 2px dashed #ce93d8;
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .story-header-deco {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 5px;
+            color: #4a148c;
+            font-size: 36px;
+        }
+
+        .story-title {
+            font-family: 'Georgia', serif;
+            font-size: 40px;
+            font-weight: 900;
+            color: #4a148c;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0 #e1bee7;
+            margin: 0;
+            line-height: 0.9;
+        }
+
+        .story-subtitle {
+             font-weight: bold;
+             font-size: 32px;
+             color: #4a148c;
+             text-transform: uppercase;
+             text-shadow: 2px 2px 0 #e1bee7;
+             margin-bottom: 20px;
+             font-family: 'Georgia', serif;
+        }
+
+        .story-text {
+            font-size: 19px;
+            line-height: 1.4;
+            color: #000;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .quote-box {
+            background: linear-gradient(to bottom right, #f39c12, #e67e22);
+            color: #2c3e50;
+            border-radius: 6px;
+            padding: 15px 25px;
+            margin: 20px 0;
+            font-style: italic;
+            font-size: 17px;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            text-align: left;
+            border-left: 6px solid #6a1b9a;
+        }
+
+        .quote-author {
+             display: block;
+             text-align: right;
+             font-weight: bold;
+             font-size: 15px;
+             margin-top: 10px;
+             color: #1a1a1a;
+             text-transform: none;
+             font-style: normal;
+        }
+
+        .enemies-section {
+            margin: 25px 0 15px 0;
+        }
+        
+        .enemies-title {
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #1a252f;
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+
+        .reward-text {
+            color: #27ae60;
+            font-weight: 900;
+            font-size: 20px;
+            margin-top: 5px;
+        }
+
+        .btn-combat {
+            background: #4a148c;
+            border: 3px solid #7b1fa2;
+            color: white;
+            font-size: 26px;
+            font-weight: 900;
+            padding: 12px 50px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #2e003e, 0 10px 10px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+            margin-top: 15px;
+            transition: all 0.1s;
+        }
+        .btn-combat:hover {
+            transform: translateY(2px);
+            box-shadow: 0 4px 0 #2e003e, 0 8px 8px rgba(0,0,0,0.3);
+            background: #6a1b9a;
+        }
+        .btn-combat:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #2e003e;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        <div class="ui-panel">
+            <div class="ui-row">
+                <div class="ui-stat">
+                    <span class="stat-label">LEVEL 3:</span>
+                    <span class="stat-value">MOUNTAIN FORTRESS</span>
+                </div>
+                <div class="ui-stat">
+                    <span class="stat-label">CHARACTER:</span>
+                    <span class="stat-value" style="color: #9c27b0;">RAVEN</span>
+                </div>
+                <div class="ui-stat">
+                    <span class="stat-label">GOLD:</span>
+                    <span class="stat-value" id="goldDisplay">1000</span>
+                </div>
+                <div class="ui-stat">
+                    <span class="stat-label">HEALTH:</span>
+                    <div class="health-bar">
+                        <div class="health-fill" id="healthBar" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="ui-row">
+                <div class="button-group">
+                    <button class="btn-primary" id="startBtn">START LEVEL 3</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level 3 Intro Modal -->
+    <div id="mainMenu" class="modal show" style="background: rgba(0,0,0,0.85);">
+        <div class="intro-container">
+            <div class="intro-header-bg">
+                <div class="intro-title">🏰 MOUNTAIN FORTRESS 🏰</div>
+            </div>
+            
+            <div class="intro-body">
+                <div class="intro-subtitle">LEVEL 3: STRATEGIC WARFARE</div>
+                <div style="font-size:16px; margin:10px 0 20px 0; color:#3e2723;">Master tactical combat with Raven!</div>
+
+                <div class="character-section">
+                    <div class="char-title">CHARACTER: RAVEN</div>
+                    <p style="margin-bottom:5px;"><strong>Ability:</strong> Strategic Mark</p>
+                    <p style="font-size:13px; margin-bottom:5px;">Mark enemies for 50% extra damage! Mark up to 3 enemies.</p>
+                    <p style="font-size:13px; font-weight:bold;">Special: +15% damage when 3+ enemies on screen</p>
+                </div>
+
+                <div class="section-header">LEVEL OBJECTIVES</div>
+                <ul class="objective-list">
+                    <li class="objective-item"><div class="check-box">✓</div> Defeat 20 Shadow Soldiers</li>
+                    <li class="objective-item"><div class="check-box">✓</div> Maintain health above 40</li>
+                    <li class="objective-item"><div class="check-box">✓</div> Use strategy and marked shots</li>
+                </ul>
+
+                <div class="how-to-header">HOW TO PLAY</div>
+                <div class="how-to-play">
+                    CLICK: Shoot enemies<br>
+                    R KEY: Mark current target for bonus damage<br>
+                    SHIFT: Power Shot on marked enemies
+                </div>
+
+                <button class="btn-begin" onclick="startGame()">BEGIN LEVEL 3</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Story Modal -->
+    <div id="storyModal" class="modal">
+        <div class="story-container">
+            <div class="story-header-deco">
+                <span>⚔️</span> 
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                    <div class="story-title">FORTRESS OF</div>
+                    <div class="story-subtitle">SHADOWS</div>
+                </div>
+                <span>⚔️</span>
+            </div>
+            
+            <div class="story-text">
+                The Shadow Caravan has fortified<br>the mountain pass!
+                <br><br>
+                You recruit <strong>RAVEN</strong>, a tactical<br>genius from the military.
+            </div>
+            
+            <div class="quote-box">
+                “The Shadow Caravan uses formation tactics. We need to disrupt their coordination. Mark the strongest ones first!”
+                <span class="quote-author">- Raven, Strategist</span>
+            </div>
+
+            <div class="enemies-section">
+                <div class="enemies-title">ENEMIES INCOMING:</div>
+                <div style="font-size:18px; font-weight:bold; color:#455a64;">20 Shadow Soldiers | Hard Difficulty</div>
+                <div style="font-size:16px; margin-top:5px; color:#455a64;">5 coordinated waves with shields!</div>
+                <div class="reward-text">Reward: 1000-1500 Gold</div>
+            </div>
+
+            <button class="btn-combat" id="startCombatBtn">ENTER COMBAT</button>
+        </div>
+    </div>
+
+    <div id="victoryModal" class="modal">
+        <div class="modal-content">
+            <h1>🏆 LEVEL COMPLETE! 🏆</h1>
+            <p id="victoryMessage"></p>
+            <div class="score-board" id="finalScore"></div>
+            
+            <div class="npc-dialogue" style="margin-top: 20px;">
+                "Excellent tactics, caravan leader. The Shadow Caravan is wounded but not defeated. Khalid commands them... and he's far more dangerous."
+                <br><br>- Raven, Strategist
+            </div>
+
+            <h3 style="color: #9c27b0; margin-top: 20px;">LEVEL 4 UNLOCKED</h3>
+            <p>Progress to "The Final Caravan"</p>
+
+            <div class="modal-buttons">
+                <!-- User requested direct link to Level 4 -->
+                <button class="btn-success" onclick="window.location.href='LEVEL_4_Final.html'">CONTINUE TO LEVEL 4</button>
+                <button class="btn-primary" onclick="location.reload()">PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="defeatModal" class="modal">
+        <div class="modal-content">
+            <h1>💀 LEVEL FAILED 💀</h1>
+            <p id="defeatMessage"></p>
+            <div class="score-board" id="defeatScore"></div>
+
+            <div class="npc-dialogue" style="margin-top: 20px;">
+                "The fortress was too strong. Regroup, learn from their tactics, and try again!"
+                <br><br>- Raven, Strategist
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-primary" onclick="location.reload()">RETRY LEVEL</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check for Level Access
+        (function checkAccess() {
+            try {
+                const savedData = localStorage.getItem('caravanGameData');
+                if (!savedData) {
+                    alert('You must complete Level 2 first!');
+                    window.location.href = 'LEVEL_2_Guild.html';
+                    return;
+                }
+                const gameData = JSON.parse(savedData);
+                if (!gameData.completedLevels || !gameData.completedLevels.includes(2)) {
+                    alert('Locked! Complete Level 2: Merchant Guild first.');
+                    window.location.href = 'LEVEL_2_Guild.html';
+                }
+            } catch (e) {
+                console.error('Access check failed:', e);
+                window.location.href = 'LEVEL_2_Guild.html';
+            }
+        })();
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameActive = false;
+        let gameState = 'menu';
+
+        let playerData = {
+            health: 100,
+            maxHealth: 100,
+            gold: 0,
+            shotCount: 0,
+            markedEnemies: 0
+        };
+
+        let enemies = [];
+        let projectiles = [];
+        let particles = [];
+        let markedEnemies = [];
+        let combatStats = {
+            enemiesDefeated: 0,
+            damageDealt: 0,
+            startTime: 0,
+            totalGoldEarned: 0
+        };
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Movement Variables
+        let caravan = { 
+            x: 50, 
+            y: 350, 
+            width: 80, 
+            height: 60, 
+            speed: 6 
+        };
+        let keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+
+        function playSound(frequency = 800, duration = 0.1, type = 'sine') {
+            try {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = frequency;
+                osc.type = type;
+                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                osc.start(audioContext.currentTime);
+                osc.stop(audioContext.currentTime + duration);
+            } catch(e) {
+                console.log('Audio unavailable');
+            }
+        }
+
+        // Keyboard Listeners
+        window.addEventListener('keydown', (e) => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+        });
+
+        function drawGame() {
+            ctx.fillStyle = 'rgba(135, 206, 235, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#8b7355';
+            ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
+
+            if (gameState === 'menu') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.font = 'bold 48px Arial';
+                ctx.fillStyle = '#9c27b0';
+                ctx.textAlign = 'center';
+                ctx.fillText('🏰 FORTRESS 🏰', canvas.width / 2, 100);
+                ctx.font = '20px Arial';
+                ctx.fillStyle = '#004e89';
+                ctx.fillText('Click START for the mountain assault...', canvas.width / 2, 400);
+            }
+
+            if (gameState === 'combat') {
+                drawCombat();
+            }
+        }
+
+        function drawCombat() {
+            ctx.fillStyle = '#8b4513';
+            ctx.fillRect(caravan.x, caravan.y, caravan.width, caravan.height);
+            ctx.fillStyle = '#daa520';
+            ctx.fillRect(caravan.x + 10, caravan.y - 10, 60, 20);
+            ctx.font = 'bold 20px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.fillText('RAVEN', caravan.x + caravan.width/2, caravan.y + 40);
+
+            enemies.forEach((enemy, idx) => {
+                ctx.fillStyle = markedEnemies.includes(idx) ? '#ff1744' : '#c0392b';
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                
+                // Mark indicator
+                if (markedEnemies.includes(idx)) {
+                    ctx.strokeStyle = '#ffeb3b';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(enemy.x - 5, enemy.y - 5, enemy.width + 10, enemy.height + 10);
+                }
+
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.arc(enemy.x + enemy.width / 2, enemy.y - 10, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#2ecc71';
+                ctx.fillRect(enemy.x, enemy.y - 20, (enemy.health / enemy.maxHealth) * enemy.width, 5);
+                ctx.strokeStyle = '#fff';
+                ctx.strokeRect(enemy.x, enemy.y - 20, enemy.width, 5);
+            });
+
+            projectiles.forEach(p => {
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            particles.forEach(p => {
+                ctx.fillStyle = `rgba(156, 39, 176, ${p.life})`;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+            });
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(0, 0, 400, 100);
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Health: ${Math.max(0, playerData.health)}/100`, 10, 25);
+            ctx.fillText(`Enemies Left: ${Math.max(0, 20 - combatStats.enemiesDefeated)}`, 10, 50);
+            ctx.fillText(`Marked: ${markedEnemies.length}/3 | Gold: ${playerData.gold}`, 10, 75);
+        }
+
+        function updateCombat() {
+            // Update Caravan Position
+            if ((keys.w || keys.ArrowUp) && caravan.y > 0) caravan.y -= caravan.speed;
+            if ((keys.s || keys.ArrowDown) && caravan.y < canvas.height - caravan.height) caravan.y += caravan.speed;
+            if ((keys.a || keys.ArrowLeft) && caravan.x > 0) caravan.x -= caravan.speed;
+            if ((keys.d || keys.ArrowRight) && caravan.x < canvas.width - caravan.width) caravan.x += caravan.speed;
+
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                enemies[i].y += enemies[i].speed;
+                
+                if (enemies[i].y > canvas.height - 100) {
+                    playerData.health -= 20;
+                    enemies.splice(i, 1);
+                    markedEnemies = markedEnemies.filter(idx => idx !== i);
+                    playSound(200, 0.2);
+                    continue;
+                }
+
+                for (let j = projectiles.length - 1; j >= 0; j--) {
+                    let p = projectiles[j];
+                    if (p.x > enemies[i].x && p.x < enemies[i].x + enemies[i].width &&
+                        p.y > enemies[i].y && p.y < enemies[i].y + enemies[i].height) {
+                        
+                        let damage = 25;
+                        if (markedEnemies.includes(i)) {
+                            damage = 40;
+                            playSound(1000, 0.12);
+                        } else {
+                            playSound(800, 0.1);
+                        }
+
+                        enemies[i].health -= damage;
+                        projectiles.splice(j, 1);
+                        combatStats.damageDealt += damage;
+                        createExplosion(enemies[i].x + 20, enemies[i].y);
+
+                        if (enemies[i].health <= 0) {
+                            playerData.gold += 80;
+                            combatStats.totalGoldEarned += 80;
+                            combatStats.enemiesDefeated++;
+                            playSound(1200, 0.2);
+                            enemies.splice(i, 1);
+                            markedEnemies = markedEnemies.filter(idx => idx !== i);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                projectiles[i].y -= projectiles[i].speed;
+                if (projectiles[i].y < 0) {
+                    projectiles.splice(i, 1);
+                }
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].x += particles[i].vx;
+                particles[i].y += particles[i].vy;
+                particles[i].life -= 0.02;
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            if (enemies.length < 3 && Math.random() < 0.03 && combatStats.enemiesDefeated < 20) {
+                enemies.push({
+                    x: Math.random() * (canvas.width - 50),
+                    y: -50,
+                    width: 40,
+                    height: 50,
+                    speed: 2.8,
+                    health: 80,
+                    maxHealth: 80
+                });
+            }
+
+            if (combatStats.enemiesDefeated >= 20) {
+                winGame();
+            }
+
+            if (playerData.health <= 0) {
+                loseGame();
+            }
+        }
+
+        function createExplosion(x, y) {
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
+                    life: 1,
+                    size: Math.random() * 5 + 3
+                });
+            }
+        }
+
+        canvas.addEventListener('click', (e) => {
+            if (gameState !== 'combat') return;
+            
+            let rect = canvas.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+
+            let clicked = false;
+            for (let i = 0; i < enemies.length; i++) {
+                if (x > enemies[i].x && x < enemies[i].x + enemies[i].width &&
+                    y > enemies[i].y && y < enemies[i].y + enemies[i].height) {
+                    
+                    // Toggle mark
+                    if (markedEnemies.includes(i)) {
+                        markedEnemies = markedEnemies.filter(idx => idx !== i);
+                    } else if (markedEnemies.length < 3) {
+                        markedEnemies.push(i);
+                    }
+                    
+                    createExplosion(x, y);
+                    playSound(1100, 0.1);
+                    clicked = true;
+                    break;
+                }
+            }
+
+            if (!clicked) {
+                playerData.shotCount++;
+                // let caravan = { x: 90, y: 370 }; // Removed hardcoded
+                let dx = x - (caravan.x + caravan.width/2);
+                let dy = y - (caravan.y + 20);
+                let dist = Math.sqrt(dx * dx + dy * dy);
+
+                projectiles.push({
+                    x: caravan.x + caravan.width/2,
+                    y: caravan.y - 10,
+                    speed: 5,
+                    vx: (dx / dist) * 5,
+                    vy: (dy / dist) * 5
+                });
+                playSound(700, 0.1, 'triangle');
+            }
+        });
+
+        function startGame() {
+            document.getElementById('mainMenu').classList.remove('show');
+            gameState = 'story';
+            document.getElementById('storyModal').classList.add('show');
+        }
+
+        function startCombat() {
+            document.getElementById('storyModal').classList.remove('show');
+            gameState = 'combat';
+            gameActive = true;
+            enemies = [];
+            projectiles = [];
+            particles = [];
+            markedEnemies = [];
+            playerData.health = 100;
+            playerData.gold = 0;
+            playerData.shotCount = 0;
+            combatStats = {
+                enemiesDefeated: 0,
+                damageDealt: 0,
+                startTime: Date.now(),
+                totalGoldEarned: 0
+            };
+        }
+
+        function winGame() {
+            gameActive = false;
+            gameState = 'victory';
+            let timeTaken = Math.round((Date.now() - combatStats.startTime) / 1000);
+            let goldBonus = 0;
+
+            if (playerData.health > 40) goldBonus += 200;
+            if (timeTaken < 240) goldBonus += 100;
+
+            let totalGold = 1000 + goldBonus;
+            playerData.gold = totalGold;
+
+            document.getElementById('victoryMessage').textContent = 
+                `You conquered the fortress!\n\nHealth Remaining: ${playerData.health}/100\nTime Taken: ${timeTaken}s`;
+            document.getElementById('finalScore').textContent = `Gold Earned: ${totalGold}`;
+            document.getElementById('victoryModal').classList.add('show');
+            playSound(1200, 0.5);
+            
+            // Save Progress (Unlock Level 4)
+            let savedData = localStorage.getItem('caravanGameData');
+            let gameData = savedData ? JSON.parse(savedData) : { 
+                gold: 0, 
+                totalGold: 0, 
+                completedLevels: [], 
+                unlockedCharacters: ['KARIM'] 
+            };
+            
+            gameData.gold += totalGold;
+            gameData.totalGold += totalGold;
+            if (!gameData.completedLevels.includes(3)) {
+                gameData.completedLevels.push(3);
+            }
+            if (!gameData.unlockedCharacters.includes('RAVEN')) {
+                gameData.unlockedCharacters.push('RAVEN');
+            }
+            gameData.lastLevel = 3;
+            
+            localStorage.setItem('caravanGameData', JSON.stringify(gameData));
+        }
+
+        function loseGame() {
+            gameActive = false;
+            gameState = 'defeat';
+            document.getElementById('defeatMessage').textContent = 
+                `The fortress defeated you!\n\nEnemies Defeated: ${combatStats.enemiesDefeated}/20`;
+            document.getElementById('defeatScore').textContent = `Try stronger tactics!`;
+            document.getElementById('defeatModal').classList.add('show');
+            playSound(200, 0.3);
+        }
+
+        function updateUI() {
+            document.getElementById('goldDisplay').textContent = playerData.gold;
+            let healthPercent = (playerData.health / playerData.maxHealth) * 100;
+            document.getElementById('healthBar').style.width = healthPercent + '%';
+        }
+
+        function gameLoop() {
+            updateUI();
+            drawGame();
+
+            if (gameState === 'combat' && gameActive) {
+                updateCombat();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('startCombatBtn').addEventListener('click', startCombat);
+
+        gameLoop();
+    </script>
+</body>
+</html>

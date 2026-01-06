@@ -1,0 +1,748 @@
+<!-- ============================================================
+     CARAVAN RAID CHAOS - LEVEL 4: THE FINAL CARAVAN
+     ============================================================
+     Theme: Endurance & Leadership Test
+     Difficulty: Very Hard (★★★★☆)
+     Location: Desert Wasteland, Trade Route 7
+     
+     Story: You lead a legendary caravan with multiple merchants.
+     KHALID'S ASSASSINS intercept you. CAPTAIN IRON joins your cause.
+     ============================================================ -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caravan Raid Chaos - Level 4: Final Caravan</title>
+    <style>
+        :root {
+            --primary: #607d8b;
+            --secondary: #004e89;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #1a1a1a;
+            --light: #ecf0f1;
+            --sand: #daa520;
+            --gold: #ffd700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #90a4ae 0%, #546e7a 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        #gameContainer {
+            width: 100%;
+            max-width: 900px;
+            background: var(--light);
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: linear-gradient(to bottom, #87ceeb 0%, #fff9e6 100%);
+        }
+
+        .ui-panel {
+            background: var(--dark);
+            color: var(--light);
+            padding: 15px;
+            font-size: 14px;
+            border-top: 3px solid var(--primary);
+        }
+
+        .ui-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .ui-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-label {
+            color: var(--warning);
+            font-weight: bold;
+            min-width: 80px;
+        }
+
+        .stat-value {
+            color: var(--gold);
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .health-bar {
+            width: 200px;
+            height: 20px;
+            background: var(--danger);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--light);
+        }
+
+        .health-fill {
+            height: 100%;
+            background: var(--success);
+            width: 100%;
+            transition: width 0.2s;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #455a64;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background: var(--light);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal h1 {
+            color: var(--primary);
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .modal h2 {
+            color: var(--secondary);
+            font-size: 24px;
+            margin: 20px 0 10px 0;
+        }
+
+        .modal p {
+            margin: 10px 0;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .npc-dialogue {
+            background: var(--sand);
+            padding: 15px;
+            border-left: 5px solid var(--primary);
+            margin: 10px 0;
+            border-radius: 5px;
+            font-style: italic;
+        }
+
+        .score-board {
+            color: var(--gold);
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: #eceff1;
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        <div class="ui-panel">
+            <div class="ui-row">
+                <div class="ui-stat">
+                    <span class="stat-label">LEVEL 4:</span>
+                    <span class="stat-value">FINAL CARAVAN</span>
+                </div>
+                <div class="ui-stat">
+                    <span class="stat-label">CHARACTER:</span>
+                    <span class="stat-value" style="color: #607d8b;">CAPTAIN IRON</span>
+                </div>
+                <div class="ui-stat">
+                    <span class="stat-label">GOLD:</span>
+                    <span class="stat-value" id="goldDisplay">2000</span>
+                </div>
+                <div class="ui-stat">
+                    <span class="stat-label">HEALTH:</span>
+                    <div class="health-bar">
+                        <div class="health-fill" id="healthBar" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="ui-row">
+                <div class="button-group">
+                    <button class="btn-primary" id="startBtn">START LEVEL 4</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainMenu" class="modal show">
+        <div class="modal-content">
+            <h1>⚔️ THE FINAL CARAVAN ⚔️</h1>
+            <h2>LEVEL 4: ULTIMATE ENDURANCE TEST</h2>
+            <p style="font-size: 18px; margin: 20px 0;">Protect your legendary caravan with a veteran protector!</p>
+            
+            <div class="info-box">
+                <h3 style="color: #607d8b;">CHARACTER: CAPTAIN IRON</h3>
+                <p><strong>Ability:</strong> Shield Bash</p>
+                <p>Every 12 shots creates protective barrier for allies!</p>
+                <p><strong>Special:</strong> Highest HP (120) + 25% damage reduction</p>
+            </div>
+
+            <h2 style="color: var(--secondary); margin-top: 20px;">LEVEL OBJECTIVES</h2>
+            <p>✅ Defeat 30 elite assassins in 6 waves</p>
+            <p>✅ Protect all 4 merchants (essential NPCs)</p>
+            <p>✅ Maintain morale above 75%</p>
+
+            <h2 style="color: var(--gold); margin-top: 20px;">HOW TO PLAY</h2>
+            <p><strong>CLICK:</strong> Shoot enemies</p>
+            <p><strong>SPACE:</strong> Shield Bash (protect area)</p>
+            <p><strong>SHIFT:</strong> Defensive Stance (reduce damage)</p>
+
+            <div class="modal-buttons">
+                <button class="btn-success" onclick="startGame()">BEGIN LEVEL 4</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="storyModal" class="modal">
+        <div class="modal-content">
+            <h1>🏰 KHALID'S ASSASSINS 🏰</h1>
+            <p style="font-size: 18px; margin: 20px 0;">Your reputation attracts deadly enemies!</p>
+            <p><strong>KHALID'S ELITE ASSASSINS</strong> intercept your legendary caravan.</p>
+            <p>You recruit <strong>CAPTAIN IRON</strong>, a grizzled veteran warrior.</p>
+            
+            <div class="npc-dialogue">
+                "I've fought in wars. These assassins are dangerous, but together we're unstoppable. Your merchants mean something to people now. We protect what matters!"
+                <br><br>- Captain Iron, Protector
+            </div>
+
+            <h3 style="color: var(--secondary); margin-top: 20px;">ENEMIES INCOMING:</h3>
+            <p>30 Elite Assassins + 4 Merchants to protect</p>
+            <p>Very Hard Difficulty - 6 consecutive waves!</p>
+            <p style="color: var(--success); font-weight: bold;">Reward: 2000-3000 Gold</p>
+
+            <div class="modal-buttons">
+                <button class="btn-primary" id="startCombatBtn">ENTER COMBAT</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="victoryModal" class="modal">
+        <div class="modal-content">
+            <h1>🏆 LEVEL COMPLETE! 🏆</h1>
+            <p id="victoryMessage"></p>
+            <div class="score-board" id="finalScore"></div>
+            
+            <div class="npc-dialogue" style="margin-top: 20px;">
+                "You led with honor, caravan leader. These merchants will sing your praises across the desert. But Khalid... he's coming personally. Prepare for the final battle at the Crossroads."
+                <br><br>- Captain Iron, Protector
+            </div>
+
+            <h3 style="color: #607d8b; margin-top: 20px;">FINAL LEVEL UNLOCKED</h3>
+            <p>Progress to "Crossroads Showdown" - The Ultimate Battle!</p>
+
+            <div class="modal-buttons">
+                <!-- User requested direct link to Level 5 -->
+                <button class="btn-success" onclick="window.location.href='LEVEL_5_Boss_Final.html'">CONTINUE TO FINAL LEVEL</button>
+                <button class="btn-primary" onclick="location.reload()">PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="defeatModal" class="modal">
+        <div class="modal-content">
+            <h1>💀 LEVEL FAILED 💀</h1>
+            <p id="defeatMessage"></p>
+            <div class="score-board" id="defeatScore"></div>
+
+            <div class="npc-dialogue" style="margin-top: 20px;">
+                "Your caravan fought bravely, but we were overwhelmed. Regroup and try again with stronger resolve!"
+                <br><br>- Captain Iron, Protector
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-primary" onclick="location.reload()">RETRY LEVEL</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check for Level Access
+        (function checkAccess() {
+            try {
+                const savedData = localStorage.getItem('caravanGameData');
+                if (!savedData) {
+                    alert('You must complete Level 3 first!');
+                    window.location.href = 'LEVEL_3_Fortress.html';
+                    return;
+                }
+                const gameData = JSON.parse(savedData);
+                if (!gameData.completedLevels || !gameData.completedLevels.includes(3)) {
+                    alert('Locked! Complete Level 3: Mountain Fortress first.');
+                    window.location.href = 'LEVEL_3_Fortress.html';
+                }
+            } catch (e) {
+                console.error('Access check failed:', e);
+                window.location.href = 'LEVEL_3_Fortress.html';
+            }
+        })();
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameActive = false;
+        let gameState = 'menu';
+
+        let playerData = {
+            health: 120,
+            maxHealth: 120,
+            gold: 0,
+            shotCount: 0,
+            merchantHealth: [50, 50, 50, 50],
+            morale: 100
+        };
+
+        let enemies = [];
+        let projectiles = [];
+        let particles = [];
+        let combatStats = {
+            enemiesDefeated: 0,
+            damageDealt: 0,
+            startTime: 0,
+            totalGoldEarned: 0
+        };
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Movement Variables
+        let caravan = { 
+            x: 50, 
+            y: 350, 
+            width: 80, 
+            height: 60, 
+            speed: 6 
+        };
+        let keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+
+        function playSound(frequency = 800, duration = 0.1, type = 'sine') {
+            try {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = frequency;
+                osc.type = type;
+                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                osc.start(audioContext.currentTime);
+                osc.stop(audioContext.currentTime + duration);
+            } catch(e) {
+                console.log('Audio unavailable');
+            }
+        }
+
+        // Keyboard Listeners
+        window.addEventListener('keydown', (e) => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+        });
+
+        function drawGame() {
+            ctx.fillStyle = 'rgba(135, 206, 235, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#d7ccc8';
+            ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
+
+            if (gameState === 'menu') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.font = 'bold 48px Arial';
+                ctx.fillStyle = '#607d8b';
+                ctx.textAlign = 'center';
+                ctx.fillText('⚔️ FINAL CARAVAN ⚔️', canvas.width / 2, 100);
+                ctx.font = '20px Arial';
+                ctx.fillStyle = '#004e89';
+                ctx.fillText('Click START for the ultimate challenge...', canvas.width / 2, 400);
+            }
+
+            if (gameState === 'combat') {
+                drawCombat();
+            }
+        }
+
+        function drawCombat() {
+            // Draw caravan
+            ctx.fillStyle = '#8b4513';
+            ctx.fillRect(caravan.x, caravan.y, caravan.width, caravan.height);
+            ctx.fillStyle = '#daa520';
+            ctx.fillRect(caravan.x + 10, caravan.y - 10, 60, 20);
+            ctx.font = 'bold 16px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.fillText('IRON', caravan.x + caravan.width/2, caravan.y + 40);
+
+            // Draw merchants
+            ctx.font = '12px Arial';
+            playerData.merchantHealth.forEach((health, i) => {
+                ctx.fillStyle = health > 0 ? '#4caf50' : '#e74c3c';
+                ctx.fillRect(150 + i * 50, 360, 40, 30);
+                ctx.fillStyle = '#fff';
+                ctx.fillText(`M${i + 1}`, 170 + i * 50, 380);
+            });
+
+            enemies.forEach((enemy) => {
+                ctx.fillStyle = '#d32f2f';
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.arc(enemy.x + enemy.width / 2, enemy.y - 10, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#2ecc71';
+                ctx.fillRect(enemy.x, enemy.y - 20, (enemy.health / enemy.maxHealth) * enemy.width, 5);
+                ctx.strokeStyle = '#fff';
+                ctx.strokeRect(enemy.x, enemy.y - 20, enemy.width, 5);
+            });
+
+            projectiles.forEach(p => {
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            particles.forEach(p => {
+                ctx.fillStyle = `rgba(96, 125, 139, ${p.life})`;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+            });
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(0, 0, 450, 120);
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Health: ${Math.max(0, playerData.health)}/120`, 10, 25);
+            ctx.fillText(`Enemies Left: ${Math.max(0, 30 - combatStats.enemiesDefeated)}`, 10, 50);
+            ctx.fillText(`Merchants Alive: ${playerData.merchantHealth.filter(h => h > 0).length}/4 | Morale: ${Math.max(0, playerData.morale)}%`, 10, 75);
+            ctx.fillText(`Gold: ${playerData.gold}`, 10, 100);
+        }
+
+        function updateCombat() {
+            // Update Caravan Position
+            if ((keys.w || keys.ArrowUp) && caravan.y > 0) caravan.y -= caravan.speed;
+            if ((keys.s || keys.ArrowDown) && caravan.y < canvas.height - caravan.height) caravan.y += caravan.speed;
+            if ((keys.a || keys.ArrowLeft) && caravan.x > 0) caravan.x -= caravan.speed;
+            if ((keys.d || keys.ArrowRight) && caravan.x < canvas.width - caravan.width) caravan.x += caravan.speed;
+
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                enemies[i].y += enemies[i].speed;
+                
+                if (enemies[i].y > canvas.height - 100) {
+                    // Damage merchants
+                    for (let j = 0; j < playerData.merchantHealth.length; j++) {
+                        if (playerData.merchantHealth[j] > 0) {
+                            playerData.merchantHealth[j] -= 10;
+                            playerData.morale -= 5;
+                            break;
+                        }
+                    }
+                    enemies.splice(i, 1);
+                    playSound(200, 0.2);
+                    continue;
+                }
+
+                for (let j = projectiles.length - 1; j >= 0; j--) {
+                    let p = projectiles[j];
+                    if (p.x > enemies[i].x && p.x < enemies[i].x + enemies[i].width &&
+                        p.y > enemies[i].y && p.y < enemies[i].y + enemies[i].height) {
+                        
+                        enemies[i].health -= 30;
+                        projectiles.splice(j, 1);
+                        combatStats.damageDealt += 30;
+                        playSound(900, 0.1);
+                        createExplosion(enemies[i].x + 20, enemies[i].y);
+
+                        if (enemies[i].health <= 0) {
+                            playerData.gold += 100;
+                            combatStats.totalGoldEarned += 100;
+                            combatStats.enemiesDefeated++;
+                            playerData.morale += 10;
+                            playSound(1200, 0.2);
+                            enemies.splice(i, 1);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                projectiles[i].y -= projectiles[i].speed;
+                if (projectiles[i].y < 0) {
+                    projectiles.splice(i, 1);
+                }
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].x += particles[i].vx;
+                particles[i].y += particles[i].vy;
+                particles[i].life -= 0.02;
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            if (enemies.length < 4 && Math.random() < 0.035 && combatStats.enemiesDefeated < 30) {
+                enemies.push({
+                    x: Math.random() * (canvas.width - 50),
+                    y: -50,
+                    width: 40,
+                    height: 50,
+                    speed: 3.0,
+                    health: 100,
+                    maxHealth: 100
+                });
+            }
+
+            // Check win condition
+            if (combatStats.enemiesDefeated >= 30) {
+                winGame();
+            }
+
+            // Check loss conditions
+            if (playerData.health <= 0 || playerData.morale <= 0 || playerData.merchantHealth.every(h => h <= 0)) {
+                loseGame();
+            }
+        }
+
+        function createExplosion(x, y) {
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
+                    life: 1,
+                    size: Math.random() * 5 + 3
+                });
+            }
+        }
+
+        canvas.addEventListener('click', (e) => {
+            if (gameState !== 'combat') return;
+            
+            playerData.shotCount++;
+
+            let rect = canvas.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+
+            for (let enemy of enemies) {
+                if (x > enemy.x && x < enemy.x + enemy.width &&
+                    y > enemy.y && y < enemy.y + enemy.height) {
+                    createExplosion(x, y);
+                    playSound(1000, 0.1);
+                    return;
+                }
+            }
+
+            // let caravan = { x: 90, y: 380 }; // Removed hardcoded
+            let dx = x - (caravan.x + caravan.width/2);
+            let dy = y - (caravan.y + 20);
+            let dist = Math.sqrt(dx * dx + dy * dy);
+
+            projectiles.push({
+                x: caravan.x + caravan.width/2,
+                y: caravan.y - 10,
+                speed: 5,
+                vx: (dx / dist) * 5,
+                vy: (dy / dist) * 5
+            });
+            playSound(750, 0.1, 'sawtooth');
+        });
+
+        function startGame() {
+            document.getElementById('mainMenu').classList.remove('show');
+            gameState = 'story';
+            document.getElementById('storyModal').classList.add('show');
+        }
+
+        function startCombat() {
+            document.getElementById('storyModal').classList.remove('show');
+            gameState = 'combat';
+            gameActive = true;
+            enemies = [];
+            projectiles = [];
+            particles = [];
+            playerData.health = 120;
+            playerData.gold = 0;
+            playerData.shotCount = 0;
+            playerData.merchantHealth = [50, 50, 50, 50];
+            playerData.morale = 100;
+            combatStats = {
+                enemiesDefeated: 0,
+                damageDealt: 0,
+                startTime: Date.now(),
+                totalGoldEarned: 0
+            };
+        }
+
+        function winGame() {
+            gameActive = false;
+            gameState = 'victory';
+            let timeTaken = Math.round((Date.now() - combatStats.startTime) / 1000);
+            let goldBonus = 0;
+
+            if (playerData.health > 30) goldBonus += 300;
+            if (playerData.morale > 75) goldBonus += 200;
+            if (timeTaken < 300) goldBonus += 100;
+
+            let totalGold = 2000 + goldBonus;
+            playerData.gold = totalGold;
+
+            document.getElementById('victoryMessage').textContent = 
+                `You protected your legendary caravan!\n\nHealth Remaining: ${playerData.health}/120\nMerchants Protected: ${playerData.merchantHealth.filter(h => h > 0).length}/4\nTime Taken: ${timeTaken}s`;
+            document.getElementById('finalScore').textContent = `Gold Earned: ${totalGold}`;
+            document.getElementById('victoryModal').classList.add('show');
+            playSound(1200, 0.5);
+            
+            // Save Progress (Unlock Level 5)
+            let savedData = localStorage.getItem('caravanGameData');
+            let gameData = savedData ? JSON.parse(savedData) : { 
+                gold: 0, 
+                totalGold: 0, 
+                completedLevels: [], 
+                unlockedCharacters: ['KARIM'] 
+            };
+            
+            gameData.gold += totalGold;
+            gameData.totalGold += totalGold;
+            if (!gameData.completedLevels.includes(4)) {
+                gameData.completedLevels.push(4);
+            }
+            if (!gameData.unlockedCharacters.includes('IRON')) {
+                gameData.unlockedCharacters.push('IRON');
+            }
+            gameData.lastLevel = 4;
+            
+            localStorage.setItem('caravanGameData', JSON.stringify(gameData));
+        }
+
+        function loseGame() {
+            gameActive = false;
+            gameState = 'defeat';
+            document.getElementById('defeatMessage').textContent = 
+                `Your caravan was overwhelmed!\n\nEnemies Defeated: ${combatStats.enemiesDefeated}/30\nMerchants Alive: ${playerData.merchantHealth.filter(h => h > 0).length}/4`;
+            document.getElementById('defeatScore').textContent = `Regroup and defend with more force!`;
+            document.getElementById('defeatModal').classList.add('show');
+            playSound(200, 0.3);
+        }
+
+        function updateUI() {
+            document.getElementById('goldDisplay').textContent = playerData.gold;
+            let healthPercent = (playerData.health / playerData.maxHealth) * 100;
+            document.getElementById('healthBar').style.width = healthPercent + '%';
+        }
+
+        function gameLoop() {
+            updateUI();
+            drawGame();
+
+            if (gameState === 'combat' && gameActive) {
+                updateCombat();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('startCombatBtn').addEventListener('click', startCombat);
+
+        gameLoop();
+    </script>
+</body>
+</html>
